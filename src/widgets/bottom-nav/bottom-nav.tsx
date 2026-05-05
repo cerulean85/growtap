@@ -1,12 +1,13 @@
 "use client";
 
-import { BarChart3, Home } from "lucide-react";
+import { BarChart3, CalendarDays, Home } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 
 const ITEMS = [
   { href: "/", label: "홈", Icon: Home },
+  { href: "/calendar", label: "캘린더", Icon: CalendarDays },
   { href: "/stats", label: "통계", Icon: BarChart3 },
 ] as const;
 

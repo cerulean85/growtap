@@ -39,3 +39,23 @@ export function listKstDayKeys(start: Date, end: Date): string[] {
   }
   return keys;
 }
+
+export function getTodayKstParts(): { year: number; month: number; day: number } {
+  const kst = new Date(Date.now() + KST_OFFSET_MS);
+  return {
+    year: kst.getUTCFullYear(),
+    month: kst.getUTCMonth() + 1,
+    day: kst.getUTCDate(),
+  };
+}
+
+export function formatKstDayKey(year: number, month: number, day: number): string {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+// [start, end) for a single KST month (1-indexed).
+export function getMonthRangeKST(year: number, month: number): { start: Date; end: Date } {
+  const start = new Date(Date.UTC(year, month - 1, 1) - KST_OFFSET_MS);
+  const end = new Date(Date.UTC(year, month, 1) - KST_OFFSET_MS);
+  return { start, end };
+}

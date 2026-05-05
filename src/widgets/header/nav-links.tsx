@@ -6,6 +6,7 @@ import { cn } from "@/shared/lib/utils";
 
 const LINKS = [
   { href: "/", label: "홈" },
+  { href: "/calendar", label: "캘린더" },
   { href: "/stats", label: "통계" },
 ] as const;
 
