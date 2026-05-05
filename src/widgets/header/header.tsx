@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { auth } from "@/shared/api/auth/auth";
 import { ThemeToggle } from "@/features/theme-toggle";
 import { AccountMenu } from "./account-menu";
@@ -15,7 +16,18 @@ export async function Header() {
     >
       <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between gap-4 px-4">
         <div className="flex items-center gap-4 min-w-0">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-lg font-semibold tracking-tight"
+          >
+            <Image
+              src="/icons/icon.svg"
+              alt=""
+              width={24}
+              height={24}
+              className="size-6 rounded-md"
+              aria-hidden
+            />
             GrowTap
           </Link>
           {user?.email ? <NavLinks /> : null}

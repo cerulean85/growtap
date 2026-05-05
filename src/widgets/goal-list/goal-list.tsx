@@ -1,3 +1,4 @@
+import { CircleCheckBig } from "lucide-react";
 import { listGoalsWithTodayCount } from "@/entities/goal/server";
 import { GoalCreateDialog } from "@/features/goal-create";
 import { GoalCard } from "./goal-card";
@@ -13,7 +14,10 @@ export async function GoalList() {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium tracking-tight">오늘의 실천</h2>
+        <h2 className="flex items-center gap-2 text-sm font-medium tracking-tight">
+          <CircleCheckBig className="size-4" aria-hidden />
+          오늘의 실천
+        </h2>
         <div className="hidden sm:block">
           <GoalCreateDialog />
         </div>

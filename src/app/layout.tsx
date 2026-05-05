@@ -25,10 +25,6 @@ export const metadata: Metadata = {
     title: "GrowTap",
     statusBarStyle: "black-translucent",
   },
-  icons: {
-    icon: "/icons/icon.svg",
-    apple: "/icons/icon.svg",
-  },
 };
 
 export const viewport: Viewport = {

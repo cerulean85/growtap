@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 
 const LINKS = [
-  { href: "/", label: "홈" },
-  { href: "/calendar", label: "캘린더" },
-  { href: "/stats", label: "통계" },
+  { href: "/", label: "홈", match: (p: string) => p === "/" },
+  { href: "/calendar", label: "캘린더", match: (p: string) => p === "/calendar" },
+  { href: "/stats", label: "통계", match: (p: string) => p === "/stats" },
 ] as const;
 
 export function NavLinks() {
@@ -15,7 +15,7 @@ export function NavLinks() {
   return (
     <nav className="hidden items-center gap-1 sm:flex">
       {LINKS.map((l) => {
-        const active = pathname === l.href;
+        const active = l.match(pathname);
         return (
           <Link
             key={l.href}

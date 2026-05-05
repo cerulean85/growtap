@@ -1,8 +1,9 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import type { MonthlyRoutineEntry } from "@/entities/routine/server";
 import type { MonthlyTapEntry } from "@/entities/tap/server";
 import { GOAL_COLOR_DOT } from "@/shared/lib/goal-colors";
 import { cn } from "@/shared/lib/utils";
@@ -20,9 +21,15 @@ type Props = {
   month: number;
   todayKey: string;
   entries: MonthlyTapEntry[];
+  routineEntries: MonthlyRoutineEntry[];
 };
 
 type DayBucket = { total: number; goals: MonthlyTapEntry[] };
+type RoutineDayBucket = {
+  total: number;
+  success: number;
+  routines: MonthlyRoutineEntry[];
+};
 
 function aggregateByDay(entries: MonthlyTapEntry[]): Map<string, DayBucket> {
   const byDay = new Map<string, DayBucket>();
@@ -38,21 +45,52 @@ function aggregateByDay(entries: MonthlyTapEntry[]): Map<string, DayBucket> {
   return byDay;
 }
 
-export function Calendar({ year, month, todayKey, entries }: Props) {
+function aggregateRoutinesByDay(
+  entries: MonthlyRoutineEntry[],
+): Map<string, RoutineDayBucket> {
+  const byDay = new Map<string, RoutineDayBucket>();
+  for (const entry of entries) {
+    let bucket = byDay.get(entry.day);
+    if (!bucket) {
+      bucket = { total: 0, success: 0, routines: [] };
+      byDay.set(entry.day, bucket);
+    }
+    bucket.total += 1;
+    if (entry.success) bucket.success += 1;
+    bucket.routines.push(entry);
+  }
+  return byDay;
+}
+
+export function Calendar({
+  year,
+  month,
+  todayKey,
+  entries,
+  routineEntries,
+}: Props) {
   const router = useRouter();
   const cells = useMemo(
     () => buildCalendarCells(year, month, todayKey),
     [year, month, todayKey],
   );
   const byDay = useMemo(() => aggregateByDay(entries), [entries]);
+  const routinesByDay = useMemo(
+    () => aggregateRoutinesByDay(routineEntries),
+    [routineEntries],
+  );
 
   const initialSelected = useMemo(() => {
     const todayCell = cells.find((c) => c.isToday && c.inMonth);
     if (todayCell) return todayCell.day;
     const firstWithTaps = cells.find((c) => c.inMonth && byDay.has(c.day));
     if (firstWithTaps) return firstWithTaps.day;
+    const firstWithRoutines = cells.find(
+      (c) => c.inMonth && routinesByDay.has(c.day),
+    );
+    if (firstWithRoutines) return firstWithRoutines.day;
     return cells.find((c) => c.inMonth)?.day ?? null;
-  }, [cells, byDay]);
+  }, [cells, byDay, routinesByDay]);
 
   const [selected, setSelected] = useState<string | null>(initialSelected);
 
@@ -62,6 +100,9 @@ export function Calendar({ year, month, todayKey, entries }: Props) {
   };
 
   const selectedEntries = selected ? byDay.get(selected)?.goals ?? [] : [];
+  const selectedRoutineEntries = selected
+    ? routinesByDay.get(selected)?.routines ?? []
+    : [];
 
   return (
     <div className="space-y-4">
@@ -106,6 +147,10 @@ export function Calendar({ year, month, todayKey, entries }: Props) {
           {cells.map((cell) => {
             const bucket = byDay.get(cell.day);
             const hasTaps = !!bucket && bucket.total > 0;
+            const routineBucket = routinesByDay.get(cell.day);
+            const hasRoutines = !!routineBucket && routineBucket.total > 0;
+            const allRoutinesDone =
+              hasRoutines && routineBucket.success === routineBucket.total;
             const isSelected = selected === cell.day;
             const dotGoals = bucket?.goals.slice(0, 3) ?? [];
             const sundayText =
@@ -122,6 +167,10 @@ export function Calendar({ year, month, todayKey, entries }: Props) {
                 aria-pressed={isSelected}
                 aria-label={`${cell.day}${
                   hasTaps ? `, ${bucket?.total}회 기록` : ""
+                }${
+                  hasRoutines
+                    ? `, 루틴 ${routineBucket.success}/${routineBucket.total}개 성공`
+                    : ""
                 }`}
                 className={cn(
                   "relative flex aspect-square flex-col items-center justify-start gap-1 rounded-md p-1 text-xs transition-colors",
@@ -142,7 +191,7 @@ export function Calendar({ year, month, todayKey, entries }: Props) {
                   {cell.date}
                 </span>
                 {hasTaps ? (
-                  <span className="mt-auto flex items-center gap-0.5 pb-0.5">
+                  <span className="flex items-center gap-0.5">
                     {dotGoals.map((g) => (
                       <span
                         key={g.goalId}
@@ -160,7 +209,26 @@ export function Calendar({ year, month, todayKey, entries }: Props) {
                     ) : null}
                   </span>
                 ) : (
-                  <span className="mt-auto h-1.5 pb-0.5" aria-hidden />
+                  <span className="h-1.5" aria-hidden />
+                )}
+                {hasRoutines ? (
+                  <span
+                    className={cn(
+                      "mt-auto inline-flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[9px] font-semibold tabular-nums",
+                      allRoutinesDone
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "bg-rose-500/10 text-rose-700 dark:text-rose-300",
+                    )}
+                  >
+                    {allRoutinesDone ? (
+                      <Check className="size-2.5" aria-hidden />
+                    ) : (
+                      <X className="size-2.5" aria-hidden />
+                    )}
+                    {routineBucket.success}/{routineBucket.total}
+                  </span>
+                ) : (
+                  <span className="mt-auto h-4" aria-hidden />
                 )}
               </button>
             );
@@ -169,7 +237,11 @@ export function Calendar({ year, month, todayKey, entries }: Props) {
       </Card>
 
       {selected ? (
-        <DayDetail day={selected} entries={selectedEntries} />
+        <DayDetail
+          day={selected}
+          entries={selectedEntries}
+          routineEntries={selectedRoutineEntries}
+        />
       ) : null}
     </div>
   );

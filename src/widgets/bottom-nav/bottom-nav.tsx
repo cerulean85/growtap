@@ -6,9 +6,19 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 
 const ITEMS = [
-  { href: "/", label: "홈", Icon: Home },
-  { href: "/calendar", label: "캘린더", Icon: CalendarDays },
-  { href: "/stats", label: "통계", Icon: BarChart3 },
+  { href: "/", label: "홈", Icon: Home, match: (p: string) => p === "/" },
+  {
+    href: "/calendar",
+    label: "캘린더",
+    Icon: CalendarDays,
+    match: (p: string) => p === "/calendar",
+  },
+  {
+    href: "/stats",
+    label: "통계",
+    Icon: BarChart3,
+    match: (p: string) => p === "/stats",
+  },
 ] as const;
 
 export function BottomNav() {
@@ -20,8 +30,8 @@ export function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="mx-auto flex h-14 max-w-3xl">
-        {ITEMS.map(({ href, label, Icon }) => {
-          const active = pathname === href;
+        {ITEMS.map(({ href, label, Icon, match }) => {
+          const active = match(pathname);
           return (
             <Link
               key={href}

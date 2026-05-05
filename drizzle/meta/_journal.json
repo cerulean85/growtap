@@ -15,6 +15,13 @@
       "when": 1777899064079,
       "tag": "0001_hot_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777985688622,
+      "tag": "0002_redundant_praxagora",
+      "breakpoints": true
     }
   ]
 }
